@@ -165,6 +165,10 @@ inputs:
     description: 'Comma-separated PR labels that exempt from checks'
     required: false
     default: ''
+  disable-auto-exempt:
+    description: 'Disable automatic exemption for owners/members/collaborators (for testing)'
+    required: false
+    default: 'false'
 
 outputs:
   quality-score:

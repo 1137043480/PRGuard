@@ -32,6 +32,35 @@
 - **👤 Contributor** — Account age, spam username detection, trust scoring
 - **🤖 AI Slop** — Emoji overload, hallucinated imports, over-engineering signals
 
+### 📸 Example Output
+
+When PRGuard detects a low-quality PR, it posts a detailed review comment:
+
+```
+❌ PRGuard Review — Failed
+
+Quality Score: 57/100 🟡 Fair
+
+⚠️ 4 issue(s) found:
+
+🟡 Warnings (4)
+- PR title does not follow conventional format. Got: "Update some files"
+- PR description has too many emoji (13, max 10)
+- AI slop patterns detected: "this pr aims to", "best practices",
+  "comprehensive solution", "seamless integration"
+- 1 commit(s) have lazy/meaningless messages: "update"
+
+🤖 AI Analysis
+This PR appears to be AI-generated filler with placeholder logic,
+suspicious imports, and excessive comment noise.
+
+Slop Indicators:
+- Hallucinated imports: some_nonexistent_package
+- Excessive comments restating obvious code behavior
+- Generic naming (do_stuff, another_function)
+- Boilerplate with no real implementation
+```
+
 ## 🚀 Quick Start
 
 ### Rules Only (Zero Cost, Zero Config)
