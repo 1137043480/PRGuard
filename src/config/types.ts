@@ -17,6 +17,7 @@ export type CheckCategory =
   | 'files'
   | 'contributor'
   | 'slop-pattern'
+  | 'style'
   | 'ai-analysis';
 
 export interface PRData {

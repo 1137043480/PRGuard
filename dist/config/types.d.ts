@@ -6,7 +6,7 @@ export interface CheckResult {
     category: CheckCategory;
     score: number;
 }
-export type CheckCategory = 'title' | 'description' | 'commits' | 'branch' | 'files' | 'contributor' | 'slop-pattern' | 'ai-analysis';
+export type CheckCategory = 'title' | 'description' | 'commits' | 'branch' | 'files' | 'contributor' | 'slop-pattern' | 'style' | 'ai-analysis';
 export interface PRData {
     number: number;
     title: string;

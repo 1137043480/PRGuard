@@ -134,6 +134,28 @@ inputs:
     required: false
     default: '10'
 
+  # === V2: Advanced Checks ===
+  verify-imports:
+    description: 'Verify imports exist in project (requires actions/checkout before PRGuard)'
+    required: false
+    default: 'true'
+  check-code-style:
+    description: 'Compare PR code style against project conventions'
+    required: false
+    default: 'true'
+  check-pr-history:
+    description: 'Analyze PR author merge/rejection history on this repo'
+    required: false
+    default: 'true'
+  check-multi-pr:
+    description: 'Detect cross-repo PR spam (same user, many repos, 24h)'
+    required: false
+    default: 'true'
+  max-repos-per-day:
+    description: 'Max repos a user can PR to in 24h before flagging as spam'
+    required: false
+    default: '10'
+
   # === Actions ===
   close-pr:
     description: 'Close PR on failure'

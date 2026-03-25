@@ -30636,6 +30636,688 @@ function checkFiles(pr, config) {
 
 /***/ }),
 
+/***/ 2915:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkImports = checkImports;
+const fs = __importStar(__nccwpck_require__(9896));
+const path = __importStar(__nccwpck_require__(6928));
+// Regex patterns for different import styles
+const IMPORT_PATTERNS = [
+    // JS/TS: import xxx from 'yyy'
+    /import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)(?:\s*,\s*(?:\{[^}]*\}|\*\s+as\s+\w+|\w+))*\s+from\s+)?['"]([^'"]+)['"]/g,
+    // JS/TS: require('yyy')
+    /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+    // Python: import yyy
+    /^import\s+([\w.]+)/gm,
+    // Python: from yyy import xxx
+    /^from\s+([\w.]+)\s+import/gm,
+];
+// Known built-in modules that should not be flagged
+const NODE_BUILTINS = new Set([
+    'fs', 'path', 'os', 'url', 'http', 'https', 'crypto', 'stream', 'util',
+    'events', 'buffer', 'querystring', 'child_process', 'cluster', 'net',
+    'dns', 'tls', 'readline', 'zlib', 'assert', 'process', 'vm', 'worker_threads',
+    'node:fs', 'node:path', 'node:os', 'node:url', 'node:http', 'node:https',
+    'node:crypto', 'node:stream', 'node:util', 'node:events', 'node:buffer',
+]);
+const PYTHON_BUILTINS = new Set([
+    'os', 'sys', 'json', 'math', 'time', 'datetime', 'collections', 'functools',
+    'itertools', 'typing', 'pathlib', 'argparse', 'logging', 'unittest', 'io',
+    're', 'copy', 'abc', 'enum', 'dataclasses', 'contextlib', 'hashlib', 'hmac',
+    'base64', 'secrets', 'uuid', 'random', 'string', 'textwrap', 'struct',
+    'threading', 'multiprocessing', 'subprocess', 'socket', 'http', 'urllib',
+    'email', 'html', 'xml', 'csv', 'sqlite3', 'pickle', 'shelve', 'gzip',
+    'zipfile', 'tarfile', 'tempfile', 'glob', 'shutil', 'pprint', 'inspect',
+    'traceback', 'warnings', 'weakref', 'types', 'importlib', 'pkgutil',
+]);
+// Extract imports from PR diff
+function extractImportsFromDiff(files) {
+    const importsByFile = new Map();
+    for (const file of files) {
+        if (!file.patch)
+            continue;
+        const addedLines = file.patch
+            .split('\n')
+            .filter(l => l.startsWith('+') && !l.startsWith('+++'))
+            .map(l => l.slice(1)); // Remove leading +
+        const imports = [];
+        const fullText = addedLines.join('\n');
+        for (const pattern of IMPORT_PATTERNS) {
+            // Reset regex
+            pattern.lastIndex = 0;
+            let match;
+            while ((match = pattern.exec(fullText)) !== null) {
+                const importPath = match[1];
+                if (importPath) {
+                    imports.push(importPath);
+                }
+            }
+        }
+        if (imports.length > 0) {
+            importsByFile.set(file.filename, imports);
+        }
+    }
+    return importsByFile;
+}
+// Check if a JS/TS import exists in the project
+function verifyJSImport(importPath, sourceFile, workspacePath) {
+    // Skip built-in modules
+    if (NODE_BUILTINS.has(importPath))
+        return true;
+    // Skip scoped and common packages (check node_modules or package.json)
+    if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
+        // It's a package import — check package.json
+        const pkgJsonPath = path.join(workspacePath, 'package.json');
+        if (fs.existsSync(pkgJsonPath)) {
+            try {
+                const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+                const allDeps = {
+                    ...pkg.dependencies,
+                    ...pkg.devDependencies,
+                    ...pkg.peerDependencies,
+                };
+                // Check root package name (e.g., "lodash" from "lodash/merge")
+                const rootPkg = importPath.startsWith('@')
+                    ? importPath.split('/').slice(0, 2).join('/')
+                    : importPath.split('/')[0];
+                if (allDeps[rootPkg])
+                    return true;
+            }
+            catch {
+                // Can't read package.json
+            }
+        }
+        // Also check if node_modules exists
+        const nmPath = path.join(workspacePath, 'node_modules', importPath);
+        if (fs.existsSync(nmPath))
+            return true;
+        // Package not found
+        return false;
+    }
+    // Relative import — resolve against source file
+    const sourceDir = path.dirname(path.join(workspacePath, sourceFile));
+    const extensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', ''];
+    for (const ext of extensions) {
+        const resolved = path.resolve(sourceDir, importPath + ext);
+        if (fs.existsSync(resolved))
+            return true;
+        // Check index file
+        const indexPath = path.resolve(sourceDir, importPath, `index${ext}`);
+        if (fs.existsSync(indexPath))
+            return true;
+    }
+    return false;
+}
+// Check if a Python import exists
+function verifyPythonImport(importPath, sourceFile, workspacePath) {
+    const rootModule = importPath.split('.')[0];
+    // Skip built-in modules
+    if (PYTHON_BUILTINS.has(rootModule))
+        return true;
+    // Check requirements.txt
+    const reqPath = path.join(workspacePath, 'requirements.txt');
+    if (fs.existsSync(reqPath)) {
+        const reqs = fs.readFileSync(reqPath, 'utf-8').toLowerCase();
+        if (reqs.includes(rootModule.toLowerCase()))
+            return true;
+    }
+    // Check if local module exists
+    const modulePath = importPath.replace(/\./g, '/');
+    const possiblePaths = [
+        path.join(workspacePath, modulePath + '.py'),
+        path.join(workspacePath, modulePath, '__init__.py'),
+        path.join(workspacePath, 'src', modulePath + '.py'),
+        path.join(workspacePath, 'src', modulePath, '__init__.py'),
+    ];
+    return possiblePaths.some(p => fs.existsSync(p));
+}
+function checkImports(pr, config, workspacePath) {
+    const results = [];
+    if (!workspacePath || !fs.existsSync(workspacePath)) {
+        // No workspace available — skip verification
+        return results;
+    }
+    const importsByFile = extractImportsFromDiff(pr.files);
+    const nonExistentImports = [];
+    for (const [filename, imports] of importsByFile) {
+        const isJS = /\.(js|jsx|ts|tsx|mjs|cjs)$/.test(filename);
+        const isPython = /\.py$/.test(filename);
+        for (const imp of imports) {
+            let exists = true;
+            if (isJS) {
+                exists = verifyJSImport(imp, filename, workspacePath);
+            }
+            else if (isPython) {
+                exists = verifyPythonImport(imp, filename, workspacePath);
+            }
+            if (!exists) {
+                nonExistentImports.push({ file: filename, import: imp });
+            }
+        }
+    }
+    if (nonExistentImports.length > 0) {
+        results.push({
+            name: 'imports-verified-nonexistent',
+            passed: false,
+            message: `🔍 Verified non-existent imports (checked against project source):\n${nonExistentImports.map(i => `  • \`${i.import}\` in ${i.file}`).join('\n')}`,
+            severity: 'error',
+            category: 'slop-pattern',
+            score: 0,
+        });
+    }
+    else if (importsByFile.size > 0) {
+        results.push({
+            name: 'imports-verified',
+            passed: true,
+            message: `All imports verified against project source`,
+            severity: 'info',
+            category: 'files',
+            score: 100,
+        });
+    }
+    return results;
+}
+
+
+/***/ }),
+
+/***/ 1846:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkMultiPR = checkMultiPR;
+const github = __importStar(__nccwpck_require__(3228));
+async function checkMultiPR(pr, token, maxReposPerDay = 10) {
+    const results = [];
+    const octokit = github.getOctokit(token);
+    try {
+        // Search for PRs created by this user in the last 24 hours
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const { data } = await octokit.rest.search.issuesAndPullRequests({
+            q: `author:${pr.author} type:pr created:>=${since}`,
+            per_page: 100,
+            sort: 'created',
+        });
+        const totalPRs = data.total_count;
+        // Extract unique repos from results
+        const uniqueRepos = new Set();
+        for (const item of data.items) {
+            // Extract repo from repository_url
+            const repoUrl = item.repository_url || '';
+            uniqueRepos.add(repoUrl);
+        }
+        const repoCount = uniqueRepos.size;
+        if (repoCount > maxReposPerDay) {
+            results.push({
+                name: 'multi-pr-spam-detected',
+                passed: false,
+                message: `🚨 User "${pr.author}" opened ${totalPRs} PRs across ${repoCount} repos in the last 24h (threshold: ${maxReposPerDay}) — strong bot/spam signal`,
+                severity: 'error',
+                category: 'slop-pattern',
+                score: 0,
+            });
+        }
+        else if (totalPRs > 20) {
+            results.push({
+                name: 'multi-pr-high-volume',
+                passed: false,
+                message: `⚠️ User "${pr.author}" opened ${totalPRs} PRs in the last 24h — unusually high volume`,
+                severity: 'warning',
+                category: 'slop-pattern',
+                score: 20,
+            });
+        }
+        else if (totalPRs > 5 && repoCount > 3) {
+            results.push({
+                name: 'multi-pr-moderate',
+                passed: true,
+                message: `User opened ${totalPRs} PRs across ${repoCount} repos in 24h — moderate activity`,
+                severity: 'info',
+                category: 'contributor',
+                score: 70,
+            });
+        }
+    }
+    catch {
+        // Search API might be rate-limited — skip silently
+    }
+    return results;
+}
+
+
+/***/ }),
+
+/***/ 8742:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkPRHistory = checkPRHistory;
+const github = __importStar(__nccwpck_require__(3228));
+async function checkPRHistory(pr, token, owner, repo) {
+    const results = [];
+    const octokit = github.getOctokit(token);
+    try {
+        // Fetch all PRs from this author on this repo
+        const { data: authorPRs } = await octokit.rest.pulls.list({
+            owner,
+            repo,
+            state: 'all',
+            per_page: 100,
+            sort: 'created',
+            direction: 'desc',
+        });
+        // Filter to this author's PRs (excluding current)
+        const myPRs = authorPRs.filter(p => p.user?.login === pr.author && p.number !== pr.number);
+        if (myPRs.length === 0) {
+            results.push({
+                name: 'history-first-time',
+                passed: true, // Not a fail, just informational
+                message: `⚡ First-time contributor to this repository`,
+                severity: 'info',
+                category: 'contributor',
+                score: 50, // Neutral score — no history to judge
+            });
+            return results;
+        }
+        // Calculate merge rate
+        const merged = myPRs.filter(p => p.merged_at !== null);
+        const closed = myPRs.filter(p => p.state === 'closed' && p.merged_at === null);
+        const mergeRate = merged.length / myPRs.length;
+        const rejectionRate = closed.length / myPRs.length;
+        results.push({
+            name: 'history-merge-rate',
+            passed: mergeRate >= 0.3, // At least 30% of PRs merged
+            message: mergeRate >= 0.3
+                ? `Contributor has ${Math.round(mergeRate * 100)}% merge rate (${merged.length}/${myPRs.length} PRs merged)`
+                : `⚠️ Contributor has low merge rate: ${Math.round(mergeRate * 100)}% (${merged.length}/${myPRs.length} PRs merged, ${closed.length} rejected)`,
+            severity: mergeRate >= 0.3 ? 'info' : 'warning',
+            category: 'contributor',
+            score: Math.round(Math.max(20, mergeRate * 100)),
+        });
+        // Flag serial rejected contributors
+        if (rejectionRate > 0.7 && myPRs.length >= 3) {
+            results.push({
+                name: 'history-serial-rejected',
+                passed: false,
+                message: `🚩 ${Math.round(rejectionRate * 100)}% of this contributor's PRs were rejected (${closed.length}/${myPRs.length}) — possible spam/slop pattern`,
+                severity: 'warning',
+                category: 'slop-pattern',
+                score: 10,
+            });
+        }
+        // Reward active contributors
+        if (merged.length >= 5) {
+            results.push({
+                name: 'history-active-contributor',
+                passed: true,
+                message: `✅ Active contributor with ${merged.length} merged PRs — high trust`,
+                severity: 'info',
+                category: 'contributor',
+                score: 100,
+            });
+        }
+    }
+    catch {
+        // API error — skip silently
+    }
+    return results;
+}
+
+
+/***/ }),
+
+/***/ 1706:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkCodeStyle = checkCodeStyle;
+const fs = __importStar(__nccwpck_require__(9896));
+const path = __importStar(__nccwpck_require__(6928));
+// Detect naming convention from identifier
+function detectNamingStyle(name) {
+    if (/^[A-Z][A-Z0-9_]+$/.test(name))
+        return 'UPPER_CASE';
+    if (/^[A-Z][a-zA-Z0-9]*$/.test(name))
+        return 'PascalCase';
+    if (/^[a-z][a-zA-Z0-9]*$/.test(name))
+        return 'camelCase';
+    if (/^[a-z][a-z0-9_]*$/.test(name))
+        return 'snake_case';
+    return 'unknown';
+}
+// Extract function/variable names from code
+function extractIdentifiers(code, lang) {
+    const names = [];
+    if (lang === 'js') {
+        // JS/TS function and variable names
+        const patterns = [
+            /(?:function|const|let|var)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g,
+            /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?:=>|\()/g,
+        ];
+        for (const p of patterns) {
+            p.lastIndex = 0;
+            let m;
+            while ((m = p.exec(code)) !== null) {
+                if (m[1] && m[1].length > 2)
+                    names.push(m[1]);
+            }
+        }
+    }
+    else if (lang === 'python') {
+        // Python function and variable names
+        const patterns = [
+            /def\s+([a-zA-Z_][a-zA-Z0-9_]*)/g,
+            /([a-zA-Z_][a-zA-Z0-9_]*)\s*=/g,
+        ];
+        for (const p of patterns) {
+            p.lastIndex = 0;
+            let m;
+            while ((m = p.exec(code)) !== null) {
+                if (m[1] && m[1].length > 2)
+                    names.push(m[1]);
+            }
+        }
+    }
+    return names;
+}
+// Detect indent style
+function detectIndentStyle(code) {
+    const lines = code.split('\n').filter(l => l.match(/^[\t ]+\S/));
+    let tabs = 0;
+    let spaces = 0;
+    const spaceCounts = [];
+    for (const line of lines) {
+        if (line.startsWith('\t')) {
+            tabs++;
+        }
+        else {
+            const match = line.match(/^( +)/);
+            if (match) {
+                spaces++;
+                spaceCounts.push(match[1].length);
+            }
+        }
+    }
+    if (tabs > spaces) {
+        return { type: 'tabs', size: 1 };
+    }
+    // Find most common indent size
+    const sizes = spaceCounts.filter(s => s <= 8);
+    const minIndent = sizes.length > 0 ? Math.min(...sizes) : 2;
+    return { type: 'spaces', size: minIndent || 2 };
+}
+// Sample existing project code to detect dominant style
+function sampleProjectStyle(workspacePath, lang) {
+    const extensions = lang === 'js' ? ['.ts', '.tsx', '.js', '.jsx'] : ['.py'];
+    const srcDirs = ['src', 'lib', 'app', '.'];
+    const sampleFiles = [];
+    // Find source files to sample (max 10)
+    for (const dir of srcDirs) {
+        const fullDir = path.join(workspacePath, dir);
+        if (!fs.existsSync(fullDir))
+            continue;
+        try {
+            const files = fs.readdirSync(fullDir, { recursive: true });
+            for (const file of files) {
+                const filePath = typeof file === 'string' ? file : '';
+                if (extensions.some(ext => filePath.endsWith(ext)) && !filePath.includes('node_modules')) {
+                    sampleFiles.push(path.join(fullDir, filePath));
+                    if (sampleFiles.length >= 10)
+                        break;
+                }
+            }
+        }
+        catch {
+            continue;
+        }
+        if (sampleFiles.length >= 10)
+            break;
+    }
+    if (sampleFiles.length === 0)
+        return null;
+    // Analyze naming conventions
+    const styleCounts = {};
+    let combinedCode = '';
+    for (const file of sampleFiles) {
+        try {
+            const content = fs.readFileSync(file, 'utf-8').slice(0, 5000); // First 5KB
+            combinedCode += content + '\n';
+            const identifiers = extractIdentifiers(content, lang);
+            for (const id of identifiers) {
+                const style = detectNamingStyle(id);
+                if (style !== 'unknown') {
+                    styleCounts[style] = (styleCounts[style] || 0) + 1;
+                }
+            }
+        }
+        catch {
+            continue;
+        }
+    }
+    const dominantNaming = Object.entries(styleCounts)
+        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'unknown';
+    const indentStyle = detectIndentStyle(combinedCode);
+    return { namingConvention: dominantNaming, indentStyle };
+}
+function checkCodeStyle(pr, config, workspacePath) {
+    const results = [];
+    if (!workspacePath || !fs.existsSync(workspacePath)) {
+        return results;
+    }
+    // Determine language from PR files
+    const hasJS = pr.files.some(f => /\.(js|jsx|ts|tsx)$/.test(f.filename));
+    const hasPython = pr.files.some(f => /\.py$/.test(f.filename));
+    const lang = hasJS ? 'js' : hasPython ? 'python' : 'js';
+    // Sample project style
+    const projectStyle = sampleProjectStyle(workspacePath, lang);
+    if (!projectStyle)
+        return results;
+    // Extract PR code identifiers
+    const prCode = pr.files
+        .filter(f => f.patch)
+        .map(f => f.patch.split('\n').filter(l => l.startsWith('+')).map(l => l.slice(1)).join('\n'))
+        .join('\n');
+    const prIdentifiers = extractIdentifiers(prCode, lang);
+    if (prIdentifiers.length < 3)
+        return results; // Not enough to analyze
+    // Check naming convention mismatch
+    const prStyleCounts = {};
+    for (const id of prIdentifiers) {
+        const style = detectNamingStyle(id);
+        if (style !== 'unknown' && style !== 'UPPER_CASE') { // Ignore constants
+            prStyleCounts[style] = (prStyleCounts[style] || 0) + 1;
+        }
+    }
+    const prDominantStyle = Object.entries(prStyleCounts)
+        .sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (prDominantStyle && projectStyle.namingConvention !== 'unknown' &&
+        prDominantStyle !== projectStyle.namingConvention) {
+        const total = Object.values(prStyleCounts).reduce((a, b) => a + b, 0);
+        const mismatchCount = prStyleCounts[prDominantStyle] || 0;
+        const mismatchRatio = mismatchCount / total;
+        if (mismatchRatio > 0.5) {
+            results.push({
+                name: 'style-naming-mismatch',
+                passed: false,
+                message: `PR uses ${prDominantStyle} naming but project uses ${projectStyle.namingConvention} — code style doesn't match project conventions`,
+                severity: 'warning',
+                category: 'style',
+                score: 30,
+            });
+        }
+    }
+    // Check indent style from PR diff
+    const prIndent = detectIndentStyle(prCode);
+    if (prIndent.type !== projectStyle.indentStyle.type ||
+        (prIndent.type === 'spaces' && prIndent.size !== projectStyle.indentStyle.size)) {
+        results.push({
+            name: 'style-indent-mismatch',
+            passed: false,
+            message: `PR uses ${prIndent.type} (${prIndent.size}) but project uses ${projectStyle.indentStyle.type} (${projectStyle.indentStyle.size})`,
+            severity: 'info',
+            category: 'style',
+            score: 60,
+        });
+    }
+    // If everything matches
+    if (results.length === 0 && prIdentifiers.length >= 3) {
+        results.push({
+            name: 'style-consistent',
+            passed: true,
+            message: 'PR code style is consistent with project conventions',
+            severity: 'info',
+            category: 'style',
+            score: 100,
+        });
+    }
+    return results;
+}
+
+
+/***/ }),
+
 /***/ 4696:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -30888,6 +31570,10 @@ const commits_1 = __nccwpck_require__(7615);
 const branch_1 = __nccwpck_require__(5901);
 const files_1 = __nccwpck_require__(1850);
 const contributor_1 = __nccwpck_require__(9900);
+const import_verifier_1 = __nccwpck_require__(2915);
+const style_checker_1 = __nccwpck_require__(1706);
+const pr_history_1 = __nccwpck_require__(8742);
+const multi_pr_detector_1 = __nccwpck_require__(1846);
 const scorer_1 = __nccwpck_require__(789);
 const analyzer_1 = __nccwpck_require__(2898);
 const github_comment_1 = __nccwpck_require__(5506);
@@ -30956,6 +31642,37 @@ async function run() {
             ...(0, contributor_1.checkContributor)(prData, config),
         ];
         core.info(`📋 Rule checks complete: ${results.length} checks, ${results.filter(r => !r.passed).length} failed`);
+        // V2: Advanced checks
+        const workspacePath = process.env.GITHUB_WORKSPACE;
+        if (workspacePath) {
+            core.info('🔬 Running advanced checks (V2)...');
+            // Import verification (checkout required)
+            if (core.getInput('verify-imports') !== 'false') {
+                const importResults = (0, import_verifier_1.checkImports)(prData, config, workspacePath);
+                results.push(...importResults);
+                core.info(`  📦 Import verification: ${importResults.length} checks`);
+            }
+            // Code style comparison
+            if (core.getInput('check-code-style') !== 'false') {
+                const styleResults = (0, style_checker_1.checkCodeStyle)(prData, config, workspacePath);
+                results.push(...styleResults);
+                core.info(`  🎨 Code style: ${styleResults.length} checks`);
+            }
+        }
+        // PR history analysis
+        if (core.getInput('check-pr-history') !== 'false') {
+            core.info('  📜 Analyzing PR history...');
+            const historyResults = await (0, pr_history_1.checkPRHistory)(prData, config.githubToken, owner, repo);
+            results.push(...historyResults);
+        }
+        // Multi-PR correlation detection
+        if (core.getInput('check-multi-pr') !== 'false') {
+            core.info('  🕸️ Checking cross-repo PR activity...');
+            const maxRepos = parseInt(core.getInput('max-repos-per-day') || '10');
+            const multiResults = await (0, multi_pr_detector_1.checkMultiPR)(prData, config.githubToken, maxRepos);
+            results.push(...multiResults);
+        }
+        core.info(`📋 All checks complete: ${results.length} total, ${results.filter(r => !r.passed).length} failed`);
         // Run AI analysis if configured
         let aiAnalysis;
         if (config.mode === 'ai' && config.ai.apiKey) {

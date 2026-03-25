@@ -8,6 +8,10 @@ import { checkCommits } from './checks/commits';
 import { checkBranch } from './checks/branch';
 import { checkFiles } from './checks/files';
 import { checkContributor } from './checks/contributor';
+import { checkImports } from './checks/import-verifier';
+import { checkCodeStyle } from './checks/style-checker';
+import { checkPRHistory } from './checks/pr-history';
+import { checkMultiPR } from './checks/multi-pr-detector';
 import { calculateScore } from './scoring/scorer';
 import { createAIProvider } from './ai/analyzer';
 import { postReviewComment } from './reporter/github-comment';
@@ -87,6 +91,43 @@ async function run(): Promise<void> {
     ];
 
     core.info(`📋 Rule checks complete: ${results.length} checks, ${results.filter(r => !r.passed).length} failed`);
+
+    // V2: Advanced checks
+    const workspacePath = process.env.GITHUB_WORKSPACE;
+    if (workspacePath) {
+      core.info('🔬 Running advanced checks (V2)...');
+
+      // Import verification (checkout required)
+      if (core.getInput('verify-imports') !== 'false') {
+        const importResults = checkImports(prData, config, workspacePath);
+        results.push(...importResults);
+        core.info(`  📦 Import verification: ${importResults.length} checks`);
+      }
+
+      // Code style comparison
+      if (core.getInput('check-code-style') !== 'false') {
+        const styleResults = checkCodeStyle(prData, config, workspacePath);
+        results.push(...styleResults);
+        core.info(`  🎨 Code style: ${styleResults.length} checks`);
+      }
+    }
+
+    // PR history analysis
+    if (core.getInput('check-pr-history') !== 'false') {
+      core.info('  📜 Analyzing PR history...');
+      const historyResults = await checkPRHistory(prData, config.githubToken, owner, repo);
+      results.push(...historyResults);
+    }
+
+    // Multi-PR correlation detection
+    if (core.getInput('check-multi-pr') !== 'false') {
+      core.info('  🕸️ Checking cross-repo PR activity...');
+      const maxRepos = parseInt(core.getInput('max-repos-per-day') || '10');
+      const multiResults = await checkMultiPR(prData, config.githubToken, maxRepos);
+      results.push(...multiResults);
+    }
+
+    core.info(`📋 All checks complete: ${results.length} total, ${results.filter(r => !r.passed).length} failed`);
 
     // Run AI analysis if configured
     let aiAnalysis;
