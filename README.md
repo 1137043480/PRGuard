@@ -4,6 +4,7 @@
 
 [![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/prguard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![中文文档](https://img.shields.io/badge/🌐-中文文档-red)](./README_CN.md)
 
 ---
 
