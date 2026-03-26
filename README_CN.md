@@ -174,7 +174,7 @@ jobs:
           ai-provider: 'openai'
           ai-api-key: ${{ secrets.OPENAI_API_KEY }}
           ai-base-url: ${{ secrets.OPENAI_BASE_URL }}  # 可选
-          ai-model: 'gpt-4o-mini'
+          ai-model: 'gpt-5'
 ```
 
 > 🔒 **你的 API key 是安全的。** 它存储在 GitHub Secrets 中 — 不会暴露在代码、日志或 PRGuard 中。
@@ -189,16 +189,16 @@ jobs:
 
 任何支持 OpenAI `/v1/chat/completions` 接口的提供商都可以用。只需设置 `ai-provider: 'openai'` 并将 `ai-base-url` 指向你的接口：
 
-| 提供商 | `ai-base-url` | 示例模型 |
-|--------|---------------|----------|
-| **OpenAI** | *（默认，不需要设置）* | `gpt-4o-mini` |
-| **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` |
-| **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
-| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
-| **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` |
-| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4-20250514` |
-| **NewAPI / One API** | `https://your-server.com/v1` | 任意模型 |
-| **Ollama（自托管）** | `http://your-server:11434/v1` | `llama3.3` |
+| 提供商 | `ai-base-url` | 推荐模型 | 备注 |
+|--------|---------------|----------|------|
+| **OpenAI** | *（默认，不需要设置）* | `gpt-5` | 代码审查效果最好，也可用 `codex-mini-latest` |
+| **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` | 对应 DeepSeek-V3.2，性价比极高 |
+| **Groq** | `https://api.groq.com/openai/v1` | `meta-llama/llama-4-scout-17b-16e-instruct` | 超快推理速度 |
+| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | 速度与质量平衡 |
+| **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` | 始终指向最新版本 |
+| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4-20250514` | 一个 API 访问所有模型 |
+| **NewAPI / One API** | `https://your-server.com/v1` | 任意模型 | 自托管 API 网关 |
+| **Ollama（自托管）** | `http://your-server:11434/v1` | `llama3.3` | 免费、完全私有，数据不出服务器 |
 
 如需使用 **Anthropic Claude**（原生 API，非 OpenAI 兼容）：
 ```yaml

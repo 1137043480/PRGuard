@@ -174,7 +174,7 @@ jobs:
           ai-provider: 'openai'
           ai-api-key: ${{ secrets.OPENAI_API_KEY }}
           ai-base-url: ${{ secrets.OPENAI_BASE_URL }}  # optional
-          ai-model: 'gpt-4o-mini'
+          ai-model: 'gpt-5'
 ```
 
 > 🔒 **Your API key is safe.** It's stored in GitHub Secrets — never exposed in code, logs, or to PRGuard.
@@ -189,16 +189,16 @@ Next time someone opens a PR, PRGuard runs automatically within 30 seconds.
 
 Any provider with an OpenAI-compatible `/v1/chat/completions` endpoint works. Just set `ai-provider: 'openai'` and point `ai-base-url` to your endpoint:
 
-| Provider | `ai-base-url` | Example Model |
-|----------|---------------|---------------|
-| **OpenAI** | *(default, no need to set)* | `gpt-4o-mini` |
-| **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` |
-| **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
-| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
-| **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` |
-| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4-20250514` |
-| **NewAPI / One API** | `https://your-server.com/v1` | any model |
-| **Ollama (self-hosted)** | `http://your-server:11434/v1` | `llama3.3` |
+| Provider | `ai-base-url` | Recommended Model | Notes |
+|----------|---------------|-------------------|-------|
+| **OpenAI** | *(default, no need to set)* | `gpt-5` | Best for code review. Also: `codex-mini-latest` |
+| **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` | Maps to DeepSeek-V3.2, great value |
+| **Groq** | `https://api.groq.com/openai/v1` | `meta-llama/llama-4-scout-17b-16e-instruct` | Ultra-fast inference |
+| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | Good balance of speed/quality |
+| **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` | Always points to latest version |
+| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4-20250514` | Access any model via one API |
+| **NewAPI / One API** | `https://your-server.com/v1` | any model | Self-hosted API gateway |
+| **Ollama (self-hosted)** | `http://your-server:11434/v1` | `llama3.3` | Free, fully private, no data leaves your server |
 
 For **Anthropic Claude** (native API, not OpenAI-compatible):
 ```yaml
