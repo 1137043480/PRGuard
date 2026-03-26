@@ -209,7 +209,9 @@ For **Anthropic Claude** (native API, not OpenAI-compatible):
 
 ## ⚙️ Configuration (Optional)
 
-All settings below are **optional** — PRGuard works out of the box with sensible defaults. Add these to your workflow only if you want to customize behavior:
+All settings below are **optional** — PRGuard works out of the box with sensible defaults. Add these to your workflow only if you want to customize behavior.
+
+> 💡 These parameters control **rule-based checks** (used in all modes). AI mode settings (`mode`, `ai-provider`, `ai-api-key`, etc.) are documented in the Quick Start section above.
 
 ```yaml
 - uses: 1137043480/PRGuard@v1
