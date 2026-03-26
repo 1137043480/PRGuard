@@ -194,11 +194,11 @@ Any provider with an OpenAI-compatible `/v1/chat/completions` endpoint works. Ju
 | **OpenAI** | *(default, no need to set)* | `gpt-4o-mini` |
 | **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` |
 | **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
-| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3-70b-chat-hf` |
+| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
 | **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` |
 | **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4-20250514` |
 | **NewAPI / One API** | `https://your-server.com/v1` | any model |
-| **Ollama (self-hosted)** | `http://your-server:11434/v1` | `llama3` |
+| **Ollama (self-hosted)** | `http://your-server:11434/v1` | `llama3.3` |
 
 For **Anthropic Claude** (native API, not OpenAI-compatible):
 ```yaml

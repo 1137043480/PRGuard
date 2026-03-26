@@ -194,11 +194,11 @@ jobs:
 | **OpenAI** | *（默认，不需要设置）* | `gpt-4o-mini` |
 | **DeepSeek** | `https://api.deepseek.com/v1` | `deepseek-chat` |
 | **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
-| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3-70b-chat-hf` |
+| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
 | **Mistral** | `https://api.mistral.ai/v1` | `mistral-large-latest` |
 | **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4-20250514` |
 | **NewAPI / One API** | `https://your-server.com/v1` | 任意模型 |
-| **Ollama（自托管）** | `http://your-server:11434/v1` | `llama3` |
+| **Ollama（自托管）** | `http://your-server:11434/v1` | `llama3.3` |
 
 如需使用 **Anthropic Claude**（原生 API，非 OpenAI 兼容）：
 ```yaml
