@@ -1,6 +1,6 @@
 # 🛡️ PRGuard
 
-**AI 驱动的 PR 质量守卫 — 自动审查、评分和拦截低质量拉取请求，无论来自人工还是 AI**
+**AI 驱动的 PR 质量守卫 — 自动逐行审查、评分和拦截低质量 PR，无论来自人工还是 AI**
 
 [![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/PRGuard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

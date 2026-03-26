@@ -1,6 +1,6 @@
 # 🛡️ PRGuard
 
-**AI-powered PR quality guardian — automatically review, score, and block low-quality pull requests, whether written by humans or AI**
+**AI-powered PR quality guardian — automatically review every line, score, and block low-quality pull requests, whether written by humans or AI**
 
 [![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/PRGuard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
