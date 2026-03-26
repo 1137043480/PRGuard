@@ -2,7 +2,7 @@
 
 **AI 驱动的 PR 质量守卫 — 自动检测和拦截低质量 & AI slop 拉取请求**
 
-[![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/prguard)
+[![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/PRGuard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![English](https://img.shields.io/badge/🌐-English-blue)](./README.md)
 
@@ -50,7 +50,7 @@ jobs:
   prguard:
     runs-on: ubuntu-latest
     steps:
-      - uses: 1137043480/prguard@v0
+      - uses: 1137043480/PRGuard@v0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -71,7 +71,7 @@ jobs:
   prguard:
     runs-on: ubuntu-latest
     steps:
-      - uses: 1137043480/prguard@v0
+      - uses: 1137043480/PRGuard@v0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           mode: 'ai'
@@ -83,7 +83,7 @@ jobs:
 ### 方式三：使用 Ollama（自托管、免费）
 
 ```yaml
-      - uses: 1137043480/prguard@v0
+      - uses: 1137043480/PRGuard@v0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           mode: 'ai'

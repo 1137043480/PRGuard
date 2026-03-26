@@ -2,7 +2,7 @@
 
 **AI-powered PR quality guardian — detect and block low-quality & AI slop pull requests**
 
-[![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/prguard)
+[![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/PRGuard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![中文文档](https://img.shields.io/badge/🌐-中文文档-red)](./README_CN.md)
 
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: 1137043480/prguard@v0
+      - uses: 1137043480/PRGuard@v0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # ↑ This is auto-provided by GitHub. You do NOT need to create it.
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: 1137043480/prguard@v0
+      - uses: 1137043480/PRGuard@v0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           mode: 'ai'
