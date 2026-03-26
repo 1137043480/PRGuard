@@ -1,6 +1,6 @@
 # 🛡️ PRGuard
 
-**AI-powered PR quality guardian — automatically review every line, score, and block low-quality pull requests, whether written by humans or AI**
+**Free AI Code Reviewer for GitHub — line-level review, 40+ quality checks, and automatic blocking of low-quality PRs**
 
 [![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/PRGuard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -8,12 +8,16 @@
 
 ---
 
-> Low-quality PRs waste maintainers' time — whether it's AI-generated slop or human-submitted code with vague titles, empty descriptions, and sloppy commits. PRGuard catches them all before they reach your review queue — with **zero cost** in rules mode, or deep AI analysis with your own API key.
+> PRGuard reviews every line of code in your pull requests — like a human reviewer, but in 30 seconds. It posts inline comments, scores quality 0-100, and auto-blocks bad PRs. Free rules mode works with zero config; AI mode uses your own API key (OpenAI, DeepSeek, Ollama, etc.).
 
 ## ✨ Features
 
 | Feature | Rules Mode (Free) | AI Mode (BYOK) |
 |---------|:-:|:-:|
+| **Line-level AI code review** | ❌ | ✅ |
+| **Import Graph context injection** | ❌ | ✅ |
+| Semantic code analysis | ❌ | ✅ |
+| Hallucinated API detection | Basic | Deep |
 | 40+ quality checks | ✅ | ✅ |
 | AI slop pattern detection | ✅ | ✅ |
 | Quality scoring (0-100) | ✅ | ✅ |
@@ -21,13 +25,14 @@
 | **Code style mismatch detection** | ✅ | ✅ |
 | **PR history / reputation analysis** | ✅ | ✅ |
 | **Cross-repo spam detection** | ✅ | ✅ |
-| **Line-level AI code review** | ❌ | ✅ |
-| **Import Graph context injection** | ❌ | ✅ |
-| Semantic code analysis | ❌ | ✅ |
-| Hallucinated API detection | Basic | Deep |
-| Auto-close slop PRs | ✅ | ✅ |
+| Auto-close low-quality PRs | ✅ | ✅ |
 
-### What PRGuard Checks
+**V3 AI Code Review** (requires AI API key):
+- **📝 Line-Level Review** — AI posts inline comments on specific code lines, like a human reviewer
+- **🧠 Import Graph Context** — AI reads related project files (not just the diff) to catch duplicated logic, API misuse, and style inconsistencies
+- **⚡ Auto Request Changes** — Automatically marks PR as "changes requested" when critical issues are found
+
+### What PRGuard Checks (Rules — Free, Zero Config)
 
 - **🏷️ Title** — Conventional commit format, length, blocked patterns
 - **📝 Description** — Completeness, template compliance, AI filler phrase detection
@@ -42,11 +47,6 @@
 - **🎨 Code Style** — Detects naming convention and indent style mismatches vs project
 - **📜 PR History** — Analyzes author's merge/rejection rate, flags serial rejected contributors
 - **🕸️ Cross-Repo Spam** — Detects users opening PRs across 10+ repos in 24h (bot detection)
-
-**V3 AI Code Review** (requires AI API key):
-- **📝 Line-Level Review** — AI posts inline comments on specific code lines, like a human reviewer
-- **🧠 Import Graph Context** — AI reads related project files (not just the diff) to catch duplicated logic, API misuse, and style inconsistencies
-- **⚡ Auto Request Changes** — Automatically marks PR as "changes requested" when critical issues are found
 
 ### 📸 Example Output
 

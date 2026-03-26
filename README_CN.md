@@ -1,6 +1,6 @@
 # 🛡️ PRGuard
 
-**AI 驱动的 PR 质量守卫 — 自动逐行审查、评分和拦截低质量 PR，无论来自人工还是 AI**
+**免费的 GitHub AI Code Reviewer — 逐行代码审查、40+ 质量检查、自动拦截低质量 PR**
 
 [![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/1137043480/PRGuard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -8,12 +8,16 @@
 
 ---
 
-> 低质量 PR 浪费维护者的时间 — 不管是 AI 生成的垃圾代码，还是人工提交的含糊标题、空描述、草率 commit。PRGuard 在它们进入你的审查队列之前就全部拦截 — 规则模式**完全免费**，AI 模式使用你自己的 API Key。
+> PRGuard 像人类 reviewer 一样逐行审查你的 Pull Request — 但只需要 30 秒。它会在代码行上发内联评论、给出 0-100 质量评分、自动拦截低质量 PR。规则模式零配置免费可用，AI 模式使用你自己的 API Key（OpenAI、DeepSeek、Ollama 等）。
 
 ## ✨ 功能特性
 
 | 功能 | 规则模式 (免费) | AI 模式 (BYOK) |
 |------|:-:|:-:|
+| **逐行 AI 代码审查** | ❌ | ✅ |
+| **Import Graph 上下文注入** | ❌ | ✅ |
+| 语义级代码分析 | ❌ | ✅ |
+| 幻觉 API 检测 | 基础 | 深度 |
 | 40+ 项质量检查 | ✅ | ✅ |
 | AI slop 模式检测 | ✅ | ✅ |
 | PR 质量评分 (0-100) | ✅ | ✅ |
@@ -21,13 +25,14 @@
 | **代码风格不一致检测** | ✅ | ✅ |
 | **PR 历史 / 信誉分析** | ✅ | ✅ |
 | **跨仓库垃圾 PR 检测** | ✅ | ✅ |
-| **逐行 AI 代码审查** | ❌ | ✅ |
-| **Import Graph 上下文注入** | ❌ | ✅ |
-| 语义级代码分析 | ❌ | ✅ |
-| 幻觉 API 检测 | 基础 | 深度 |
-| 自动关闭 slop PR | ✅ | ✅ |
+| 自动关闭低质量 PR | ✅ | ✅ |
 
-### 检查项目
+**V3 AI 代码审查**（需要 AI API key）：
+- **📝 逐行代码审查** — AI 在代码的具体行上发布评论，像人类 reviewer 一样
+- **🧠 Import Graph 上下文** — AI 读取项目关联文件（不只是 diff），可以发现重复逻辑、API 误用和风格不一致
+- **⚡ 自动 Request Changes** — 发现严重问题时自动标记 PR 为"需要修改"
+
+### 检查项目（规则 — 免费，零配置）
 
 - **🏷️ 标题** — Conventional Commit 格式、长度、屏蔽词
 - **📝 描述** — 完整性检查、模板合规、AI 套话检测
@@ -42,11 +47,6 @@
 - **🎨 代码风格** — 检测命名规范和缩进风格与项目的不一致
 - **📜 PR 历史** — 分析作者的合并/拒绝率，标记屡次被拒的贡献者
 - **🕸️ 跨仓库垃圾 PR** — 检测 24 小时内在 10+ 仓库提交 PR 的用户（机器人检测）
-
-**V3 AI 代码审查**（需要 AI API key）：
-- **📝 逐行代码审查** — AI 在代码的具体行上发布评论，像人类 reviewer 一样
-- **🧠 Import Graph 上下文** — AI 读取项目关联文件（不只是 diff），可以发现重复逻辑、API 误用和风格不一致
-- **⚡ 自动 Request Changes** — 发现严重问题时自动标记 PR 为"需要修改"
 
 ### 📸 输出示例
 
