@@ -37,7 +37,7 @@
 - **👤 Contributor** — Account age, spam username detection, trust scoring
 - **🤖 AI Slop** — Emoji overload, hallucinated imports, over-engineering signals
 
-**V2 Advanced (unique to PRGuard):**
+**V2 Advanced Detection:**
 - **📦 Import Verification** — Checks imports against actual project source code (not guessing)
 - **🎨 Code Style** — Detects naming convention and indent style mismatches vs project
 - **📜 PR History** — Analyzes author's merge/rejection rate, flags serial rejected contributors
