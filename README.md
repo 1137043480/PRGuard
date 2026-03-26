@@ -70,6 +70,26 @@ Slop Indicators:
 - Boilerplate with no real implementation
 ```
 
+**Line-level AI Code Review** (with `mode: 'ai'`):
+
+PRGuard also posts inline comments directly on the code — just like a human reviewer:
+
+```
+src/utils/auth-helper.ts line 8:
+  🔴 CRITICAL: `useAuth()` is a React hook and cannot be called from
+  a regular utility function. This violates the Rules of Hooks.
+
+src/utils/auth-helper.ts line 13:
+  🟡 WARNING: `build_api_url` duplicates existing `buildApiUrl` logic
+  in `src/lib/apiClient.ts` and hardcodes a base URL.
+
+src/utils/auth-helper.ts line 17:
+  🔵 NITPICK: Function naming `fetch_user_data` is inconsistent with
+  the codebase's camelCase TypeScript style.
+```
+
+> The AI reads related project files via **Import Graph** — it knows your codebase, not just the diff.
+
 ## 🚀 Quick Start
 
 ### Step 1: Create a workflow file
