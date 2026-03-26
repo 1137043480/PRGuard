@@ -207,7 +207,17 @@ For **Anthropic Claude** (native API, not OpenAI-compatible):
           ai-model: 'claude-sonnet-4-20250514'
 ```
 
-## ⚙️ Configuration
+## ⚙️ Configuration (Optional)
+
+All settings below are **optional** — PRGuard works out of the box with sensible defaults. Add these to your workflow only if you want to customize behavior:
+
+```yaml
+- uses: 1137043480/PRGuard@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    max-failures: 6         # ← optional: override any default below
+    min-quality-score: 60
+```
 
 ### Scoring
 
